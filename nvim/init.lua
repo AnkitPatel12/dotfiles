@@ -60,6 +60,45 @@ require("lazy").setup({
     end,
   },
 
+  -- Treesitter: proper syntax highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    config = function()
+      -- v1.0 API: highlight and indent are on by default
+      require("nvim-treesitter").setup({
+        ensure_installed = {
+          "lua", "python", "javascript", "typescript",
+          "tsx", "cpp", "c", "swift",
+        },
+      })
+    end,
+  },
+  -- Telescope: fuzzy finder
+  -- Cmd+P equivalent for files, live grep, and more
+  {
+    "nvim-telescope/telescope.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local telescope = require("telescope")
+      local builtin   = require("telescope.builtin")
+
+      telescope.setup({
+        defaults = {
+          layout_strategy = "horizontal",
+          sorting_strategy = "ascending",
+          layout_config = { prompt_position = "top" },
+        },
+      })
+
+      -- Keymaps — space is your leader key
+      vim.keymap.set("n", "<leader>ff", builtin.find_files,  { desc = "Find files" })
+      vim.keymap.set("n", "<leader>fg", builtin.live_grep,   { desc = "Search text in project" })
+      vim.keymap.set("n", "<leader>fb", builtin.buffers,     { desc = "Find open buffers" })
+      vim.keymap.set("n", "<leader>fh", builtin.help_tags,   { desc = "Search help" })
+    end,
+  },
+
 }, {
   ui = { border = "rounded" },
 })
