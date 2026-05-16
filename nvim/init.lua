@@ -98,6 +98,56 @@ require("lazy").setup({
       vim.keymap.set("n", "<leader>fh", builtin.help_tags,   { desc = "Search help" })
     end,
   },
+  
+  -- Mason: installs language servers
+  {
+    "williamboman/mason.nvim",
+    config = function()
+      require("mason").setup({ ui = { border = "rounded" } })
+    end,
+  },
+
+  -- Bridges mason and lspconfig so they work together
+  {
+    "williamboman/mason-lspconfig.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    config = function()
+      require("mason-lspconfig").setup({
+        ensure_installed = {
+          "pyright",     -- Python
+          "ts_ls",       -- TypeScript/JavaScript
+          "clangd",      -- C/C++
+        },
+        automatic_installation = true,
+      })
+    end,
+  },
+
+  -- LSP: connects nvim to the language servers
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = { "williamboman/mason-lspconfig.nvim" },
+    config = function()
+      local lspconfig = require("lspconfig")
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+
+      -- Keymaps that only activate when LSP is attached to a buffer
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(event)
+          local buf = event.buf
+          vim.keymap.set("n", "gd", vim.lsp.buf.definition,     { buffer = buf, desc = "Go to definition" })
+          vim.keymap.set("n", "K",  vim.lsp.buf.hover,          { buffer = buf, desc = "Hover docs" })
+          vim.keymap.set("n", "gr", vim.lsp.buf.references,     { buffer = buf, desc = "Find references" })
+          vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = buf, desc = "Rename symbol" })
+          vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = buf, desc = "Code action" })
+        end,
+      })
+
+      lspconfig.pyright.setup({ capabilities = capabilities })
+      lspconfig.ts_ls.setup({ capabilities = capabilities })
+      lspconfig.clangd.setup({ capabilities = capabilities })
+    end,
+  },
 
 }, {
   ui = { border = "rounded" },
